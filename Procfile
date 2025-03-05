@@ -1,0 +1,1 @@
+web: gunicorn HealthDisease.wsgi --log-file -
