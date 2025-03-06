@@ -102,11 +102,40 @@
 #     main()
 
 
+import os
 import requests
 from ultralytics import YOLO
 from django.conf import settings
 
-model = YOLO('yolov8n.pt')  
+# Google Drive File ID for yolov8n.pt
+FILE_ID = "1WXaYsW2Gffawv9m0avHmd7hrZG2nRHC1"
+MODEL_PATH = os.path.join(settings.BASE_DIR, "models", "yolov8n.pt")
+
+
+def download_model():
+    """Download yolov8n.pt from Google Drive if not found."""
+    if not os.path.exists(MODEL_PATH):
+        print("Downloading YOLOv8 model from Google Drive...")
+        
+        # Google Drive direct download link format
+        url = f"https://drive.google.com/uc?id={FILE_ID}"
+        response = requests.get(url, stream=True)
+
+        if response.status_code == 200:
+            os.makedirs(os.path.dirname(MODEL_PATH), exist_ok=True)
+            with open(MODEL_PATH, "wb") as f:
+                for chunk in response.iter_content(chunk_size=1024):
+                    f.write(chunk)
+            print("Download complete.")
+        else:
+            raise Exception("Failed to download YOLO model from Google Drive.")
+
+
+# Ensure the model is downloaded before loading
+download_model()
+
+# Load the YOLO model
+model = YOLO(MODEL_PATH)
 
 def detect_food(image_path):
     results = model(image_path)
